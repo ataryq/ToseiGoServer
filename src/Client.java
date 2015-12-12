@@ -1,6 +1,12 @@
 import java.net.Socket;
 import java.util.ArrayList;
 
+/**
+ * Логическая часть клинта
+ * Отвечает за обработку сообщений от пользователя
+ * @author ataryq
+ *
+ */
 public class Client  implements InterfaceClient, InterfaceAction {
 	protected final String SPLIT_COM = "_";
 	protected final String SPLIT_MSG = ";";
@@ -33,7 +39,11 @@ public class Client  implements InterfaceClient, InterfaceAction {
 	public String GetLogin() {
 		return login;
 	}
-		
+	/**
+	 * Конструктор
+	 * @param soc сокет
+	 * @param _control контроллер
+	 */
 	public Client(Socket soc, Controller _control) 
 	{
 		client = new SocketClient(soc, this);
@@ -46,8 +56,11 @@ public class Client  implements InterfaceClient, InterfaceAction {
 
 		client.SendMessage("0_0_server: connected to server" + SPLIT_MSG + num_pl);
 	}
-
-	@Override
+	
+	/**
+	 * обработка сообщения
+	 * @param msg сообщение
+	 */
 	public void Action(String msg) 
 	{
 		//client unconnected
@@ -76,6 +89,10 @@ public class Client  implements InterfaceClient, InterfaceAction {
 		}
 	}
 	
+	/**
+	 * Установить текущее состояние обработчика
+	 * @param _state номер состояния
+	 */
 	public void SetState(int _state) {
 		//deactivate
 		switch(cur_state)
@@ -100,17 +117,31 @@ public class Client  implements InterfaceClient, InterfaceAction {
 		cur_state = _state;
 	}
 	
+	/**
+	 * Разбиение строки
+	 * @param msg сообщение
+	 * @return список комманд
+	 */
 	protected String[] ParseMsg(String msg) {
 		msg = msg.substring(msg.indexOf(SPLIT_COM) + 1);
 		String[] msgs = msg.split(SPLIT_COM);
 		return msgs;
 	}
 	
+	/**
+	 * Выделение из строки параметров
+	 * @param msg
+	 * @return список параметров
+	 */
 	protected String[] ParseParam(String msg) {
 		String[] msgs = msg.split(SPLIT_MSG);
 		return msgs;
 	}
 	
+	/**
+	 * Состояние до авторизции
+	 * @param msg  сообщение
+	 */
 	protected void Authorizate(String msg) {
 		ServerProcessing.Log("Authorizate \n");
 		String[] msgs = ParseMsg(msg);
@@ -150,8 +181,11 @@ public class Client  implements InterfaceClient, InterfaceAction {
 		}
 	}
 	
-
-	
+	/**
+	 * InMenu state
+	 * Состояние активно когда игрок в меню
+	 * @param msg  getted mesage
+	 */
 	protected void InMenu(String msg) {
 		ServerProcessing.Log("InMenu \n");
 
@@ -202,6 +236,10 @@ public class Client  implements InterfaceClient, InterfaceAction {
 		
 	}
 	
+	/**
+	 * Пригласить пользователя играть
+	 * @param name_inviter
+	 */
 	public void Invite(String name_inviter) {
 		invited = true;
 		SendInvite(name_inviter);
@@ -232,6 +270,11 @@ public class Client  implements InterfaceClient, InterfaceAction {
 	}
 
 	
+	/**
+	 * Состояние игры
+	 * Активно когда польз. с кем то играет
+	 * @param msg
+	 */
 	protected void ProcessGame(String msg) {
 		ServerProcessing.Log("ProcessGame \n");
 
@@ -348,7 +391,10 @@ public class Client  implements InterfaceClient, InterfaceAction {
 		control.Unconnect(this);
 	}
 
-	@Override
+	/**
+	 * Отправляет информацию об изменении камней на доске(удаление пленников и прочее)
+	 * @param moves  список измененных камней
+	 */
 	public void SendDiffMove(ArrayList<Move> moves) {
 		// TODO Auto-generated method stub
 		String msg = "3" + SPLIT_COM + "6" + SPLIT_COM;
@@ -360,7 +406,9 @@ public class Client  implements InterfaceClient, InterfaceAction {
 		client.SendMessage(msg);
 	}
 
-	@Override
+	/**
+	 * Посылает колличесто пленников и обоих игроков
+	 */
 	public void SendPoint(int point, int opp_point) {
 		// TODO Auto-generated method stub
 		client.SendMessage("3" + SPLIT_COM + "7" + SPLIT_COM + Integer.toString(point) +

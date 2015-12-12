@@ -2,7 +2,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
+/**
+ * Сокет сервер, отвечает за регистрацию новых подключений
+ * @author ataryq
+ *
+ */
 public class SocketServer implements InterfaceServerBase, Runnable {
 	
 	ServerSocket serverSock;
@@ -23,6 +27,9 @@ public class SocketServer implements InterfaceServerBase, Runnable {
 		ServerProcessing.Log("create socket server \n");
 	}
 	
+	/**
+	 * Старт сервера
+	 */
 	public void Start() 
 	{
 		ServerProcessing.Log("start socket server \n");
@@ -30,7 +37,9 @@ public class SocketServer implements InterfaceServerBase, Runnable {
 		t.start();
 	}
 	
-	
+	/**
+	 * Прослушивание подключения к сокету
+	 */
 	public void AcceptUsers() 
 	{
 		while(true) 

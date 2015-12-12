@@ -10,6 +10,12 @@ import java.util.TimerTask;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
+/**
+ * Сервер
+ * Логическая часть сервера, содержит в себе логику работы с сервером
+ * @author ataryq
+ *
+ */
 public class ServerProcessing extends TimerTask implements InterfaceServerLogic {
 	public InterfaceServerBase base_server;
 	protected ArrayList<InterfaceClient> clients;
@@ -20,6 +26,10 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 	private static PrintWriter out;
 	protected static Timer timer_flush_log = new Timer();
 
+	/**
+	 * Конструктор
+	 * @param _control контроллер
+	 */
 	public ServerProcessing(Controller _control)  {
 		clients = new ArrayList<InterfaceClient>();
 		control = _control;
@@ -28,6 +38,11 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		timer_flush_log.schedule(task, 5000, 5000);
 	}
 	
+	/**
+	 * Таймер, переодически запрашивающий запись информации в файл
+	 * @author ataryq
+	 *
+	 */
 	class TaskFlushLog extends TimerTask {
 		@Override
 		public void run() {
@@ -36,6 +51,9 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		}
 	}
 	
+	/**
+	 * Инициализация сервера
+	 */
 	public static void Init() {
 		try {
 			file = new File("log.txt");
@@ -48,12 +66,19 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		}
 	}
 	
+	/**
+	 * Запись лога сервера
+	 * @param msg сообщение лога
+	 */
 	public static void Log(String msg) {
 		if(out != null) out.println(msg);
 		if(log != null) log.append(msg);
 		System.out.println(msg);
 	}
 	
+	/**
+	 * Запист непосредственно на диск
+	 */
 	public static void FlushLog() {
 		try {
 			out.flush();
@@ -61,21 +86,34 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		
 	}
 	
+	/**
+	 * вернет колличество игроков
+	 */
 	public int GetNumPlayers() {
 		return clients.size();
 	}
 	
-	@Override
+	/**
+	 * Добавить новое подключение
+	 * @param new_sock сокет пользователя
+	 */
 	public void AddNewConnection(Socket new_sock) {
 		InterfaceClient new_client = new Client(new_sock, control);
 		clients.add(new_client);
 	}
 
+	/**
+	 * Задать сокет сервер
+	 * @param _base_server сокет серер
+	 */
 	@Override
 	public void SetBaseServer(InterfaceServerBase _base_server) {
 		base_server = _base_server;
 	}
 
+	/**
+	 * Старт графиской части сервера
+	 */
 	public void StartGraphicalPart() {
 		JFrame frame = new JFrame("Server GO");
 		log = new JTextArea();
@@ -92,6 +130,9 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		ServerProcessing.Log("start graphic part \n");
 	}
 
+	/**
+	 * Запуск сервера
+	 */
 	public void Start() {
 		StartGraphicalPart();
 		base_server.Start();
@@ -99,6 +140,11 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 	}
 
 	@Override
+	/**
+	 * Авторизация нового пользователя
+	 * @param login
+	 * @return true - успешная регистрация, false  иначе
+	 */
 	public boolean RegistredNewUser(String login) 
 	{
 		for(int i = 0; i < clients.size(); i++) 
@@ -110,6 +156,11 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		return true;
 	}
 	
+	/**
+	 * @param Список игрков _client
+	 * @param Строка поиска find_str
+	 * @return Список игрков
+	 */
 	public String[] GetClients(InterfaceClient _client, String find_str) {
 		ArrayList<String> login_list = new ArrayList<String>();
 		InterfaceClient cl;
@@ -134,6 +185,11 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		return output;
 	}
 	
+	/**
+	 * Найти игрока по логину
+	 * @param login Логин игрока
+	 * @return обьект ирока
+	 */
 	public InterfaceClient FindPlayerByLogin(String login) {
 		for(int i = 0; i < clients.size(); i++) {
 			if(login.equals(clients.get(i).GetLogin())) return clients.get(i);
@@ -141,6 +197,10 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		return null;
 	}
 
+	/**
+	 * удаление игрока
+	 * @param cl обьект игрока
+	 */
 	public void DeleteClient(InterfaceClient cl) {
 		int i = 0;
 		for(; i < clients.size(); i++ ) {
@@ -150,13 +210,18 @@ public class ServerProcessing extends TimerTask implements InterfaceServerLogic 
 		}
 	}
 	
+	/**
+	 * удаление игрока по номеру
+	 * @param num_client номер игрока
+	 */
 	public void DeleteClient(int num_client) {
 		clients.get(num_client).PrepareDelete();
 		clients.remove(num_client);
 	}
 	
 	/** 
-	 * check breaks connection
+	 * Проверка обрыва соединения
+	 * сейчас не используется
 	 */
 	@Override
 	public void run() {

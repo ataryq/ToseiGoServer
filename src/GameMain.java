@@ -1,49 +1,53 @@
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
+/**
+ * Main class
+ * @author ataryq
+ */
 public class GameMain {
-	//public static String adress = "188.227.19.61";
 	public static String adress = "";
 	public static int port_secure = 2500;
 	public static int port = 6000;
 
-
+	/**
+	 * main class
+	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		ServerProcessing.Init();
 		
-		//ReadFileSettings("config.txt");
 		ServerProcessing.Log("start main \n");
+		//create controller
 		Controller contrl = new Controller();
+		//create server
 		InterfaceServerLogic serv_logic = new ServerProcessing(contrl);
 		InterfaceServerBase ser = new SocketServer(serv_logic);
 		serv_logic.SetBaseServer(ser);
 		serv_logic.Start();
 		contrl.Init(serv_logic);
 		
-		//DescProcessing desc = new DescProcessing(19);
-		//desc.Test();
-		
+		// start security server, needed for flash apps
 		StartSecurityServer();
-		
-		
 	}
 	
+	/**
+	 * Посылает содержание crossdomain.xml в ответ на подключение к этому порту
+	 * Без этого сервера не будет работать только флеш приложение
+	 */
     static DataOutputStream out;
     static DataInputStream in;
     static byte[] policyRequest = new byte[23];
     static byte[] xmlBytes;
     static int xmlBytesCount = 0;
 	
+    /**
+     * запуск сервера
+     */
 	private static void StartSecurityServer() {
 		ServerProcessing.Log("-> Security server started... \n");
          ServerSocket server;
@@ -82,6 +86,11 @@ public class GameMain {
 		}
 	}
 	
+	/**
+	 * посылает файл безопасности
+	 * @param _client  сокет клиент
+	 * @param wait_reading  был ли считан запрос на файл безопасности
+	 */
 	public static void SendPolicy(Socket _client, boolean wait_reading) {
 		try {
 			out = new DataOutputStream(_client.getOutputStream());
@@ -97,39 +106,6 @@ public class GameMain {
 			ex.printStackTrace();
 			ServerProcessing.Log(ex.getMessage() + "\n");
 		}
-	}
-	
-	public static String ReadFileSettings(String fileName)  {
-	    //Этот спец. объект для построения строки
-	    StringBuilder sb = new StringBuilder();
-	 
-	    File file = new File(fileName);
-	    if(!file.exists()){
-            try {
-				file.createNewFile();
-				ServerProcessing.Log("create config file: " + file.getAbsolutePath());
-			} catch (IOException e) {
-				e.printStackTrace();
-				ServerProcessing.Log(e.getMessage());
-				ServerProcessing.FlushLog();
-			}
-        }
-	 
-	    try {
-	        //Объект для чтения файла в буфер
-	        @SuppressWarnings("resource")
-			BufferedReader in = new BufferedReader(new FileReader( file.getAbsoluteFile()));
-	        GameMain.adress = in.readLine();
-	    	ServerProcessing.Log("reading ip from file: " + GameMain.adress);
-
-	    } catch(IOException e) {
-	    	e.printStackTrace();
-	    	ServerProcessing.Log(e.getMessage());
-	    	ServerProcessing.FlushLog();
-	    }
-	 
-	    //Возвращаем полученный текст с файла
-	    return sb.toString();
 	}
 	
 }

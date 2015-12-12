@@ -1,5 +1,12 @@
 
-
+/**
+ * Класс партии
+ * С момента начала приглашения другого игрока и до конца игры,
+ *  все ответы от пользователя обрабатываются здесь
+ * Ответы передаются из класс Client
+ * @author ataryq
+ *
+ */
 public class ProcessGame {
 	public static final boolean BLACK = true;
 	public static final boolean WHITE = false;
@@ -15,6 +22,12 @@ public class ProcessGame {
 	protected int white_point = 0;
 	protected int black_point = 0;
 	
+	/**
+	 * Конструктор
+	 * @param _host приглашающий
+	 * @param _pl2 приглашаемый
+	 * @param _control контроллер
+	 */
 	public ProcessGame(InterfaceClient _host, 
 			InterfaceClient _pl2,
 			Controller _control) {
@@ -24,11 +37,22 @@ public class ProcessGame {
 		size_desc = 19;
 		desc_proc = new DescProcessing(size_desc);
 	}
-		
+	
+	/**
+	 * Возвратит хоста игры(тот кто приглашает)
+	 * @return 
+	 */
 	public InterfaceClient GetHost() {
 		return black;
 	}
 	
+	/**
+	 * Проверка кода
+	 * @param X коор. хода
+	 * @param Y коор. хода
+	 * @param type цвет камня
+	 * @return true - разрешает ход, false - запрет хода
+	 */
 	protected boolean CheckMove(int X, int Y, boolean type) {
 		if(X < size_desc && Y >= 0 && Y < size_desc && Y >= 0) {
 			if(type == BLACK) 
@@ -39,6 +63,12 @@ public class ProcessGame {
 		else return false;
 	}
 	
+	/**
+	 * Попытка добавить камень на доску
+	 * @param X коор. хода
+	 * @param Y коор. хода
+	 * @param player сходивший игрок
+	 */
 	public void Move(int X, int Y, InterfaceClient player) {
 		try {
 			boolean type;
@@ -104,6 +134,10 @@ public class ProcessGame {
 		
 	}
 	
+	/**
+	 * Сделать пасс
+	 * @param player игрок ответивший пассом
+	 */
 	public void Pass(InterfaceClient player) {
 		ServerProcessing.Log("try pass \n");
 		if((player == black && queue_move == BLACK) ||
@@ -121,6 +155,9 @@ public class ProcessGame {
 		}
 	}
 	
+	/**
+	 * Конец игры, когда оба игрока сказали пасс
+	 */
 	public void EndGame() {
 		ServerProcessing.Log("end game \n");
 		if(this.is_started_game) {
@@ -135,6 +172,9 @@ public class ProcessGame {
 		control.DeleteGame(this);
 	}
 	
+	/**
+	 * Начало игры
+	 */
 	public void StartGame() {
 		is_started_game = true;
 		black.StartGame(BLACK, control.GetNumPlayers());
@@ -143,10 +183,19 @@ public class ProcessGame {
 		white.SetState(Client.PRECESSING_GAME);
 	}
 	
+	/**
+	 * Начата ли игра
+	 * @return true - если игра идет, иначе false
+	 */
 	public boolean GetStartedGame() {
 		return this.is_started_game;
 	}
 	
+	/**
+	 * Вернуть оппонента
+	 * @param cl обьект игрока
+	 * @return обьект оппонента игрока
+	 */
 	public InterfaceClient GetAnother(InterfaceClient cl) {
 		if(cl == black) return white;
 		else if(cl == white) return black;
@@ -156,11 +205,17 @@ public class ProcessGame {
 		}
 	}
 	
+	/**
+	 * отмена приглашения
+	 */
 	public void CancelInvite() {
 		black.CancelInvite();
 		white.CancelInvite();
 	}
 	
+	/**
+	 * удаление игры
+	 */
 	public void PrepareDelete() {
 		black.SetGame(null);
 		white.SetGame(null);

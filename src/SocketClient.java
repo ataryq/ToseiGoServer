@@ -3,19 +3,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Timer;
-import java.util.TimerTask;
 
-
-@SuppressWarnings("unused")
+/**
+ * Сокет сервер
+ * Отвечает за низшую работу сокетов: принимате, отправляет сообщения адресату
+ * @author ataryq
+ */
 public class SocketClient implements Runnable {
 	protected InterfaceAction client;
 	protected Socket sock;
 	protected BufferedReader reader;
 	protected InputStreamReader reader_in;
-	private String[] msgs;
 	private PrintWriter writer;
 	private boolean end_connect = false;
+	
+	/**
+	 * Конструктор
+	 * @param _sock сокет
+	 * @param _client обьект клиента
+	 */
 	SocketClient(Socket _sock, Client _client) {
 		client = _client;
 		sock = _sock;
@@ -28,12 +34,19 @@ public class SocketClient implements Runnable {
 		reader = new BufferedReader(reader_in);
 	}
 	
+	/**
+	 * Отправляет сообщение на обработку логике Client
+	 * @param msg
+	 */
 	protected void ProcessMessage(String msg) {
 		if(msg.isEmpty()) return;
 		
 		client.Action(msg);
 	}
 	
+	/**
+	 * Удаление сокета клинета
+	 */
 	public void PrepareDelete() {
 		try {
 			sock.close();
@@ -44,33 +57,29 @@ public class SocketClient implements Runnable {
 		}
 	}
 	
+	/**
+	 * отправить сообщение
+	 * @param msg сообщение
+	 */
 	public void SendMessage(String msg) {
 		msg += "\0";
 		writer.write(msg);
 		writer.flush();
 	}
 	
+	/**
+	 * Отправить логике, что соединение оборвано
+	 */
 	public void SendUnconnected() {
 		ProcessMessage("-1");
 	}
 	
-	/*private class TaskSendPrivacePolicy extends TimerTask {
-
-		@Override
-		public void run() {
-			send_private_policy = true;
-			ServerProcessing.Log("time elapsed, set send_priv_pol true\n");
-		}
-		
-	}*/
-	
 	@Override
+	/**
+	 * Принятие сообщений от пользователя
+	 */
 	public void run() {
 		String message;
-		/*Timer timer = new Timer();
-		TimerTask task = new TaskSendPrivacePolicy();
-		timer.schedule(task , 10000);*/
-
 		try {
 			while ( !end_connect && ( message = reader.readLine()) != null ) {
 				ServerProcessing.Log("msg: /" + message + "/\n");

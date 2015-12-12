@@ -1,14 +1,23 @@
 import java.util.ArrayList;
 
+/**
+ * Структура хода
+ * @author ataryq
+ *
+ */
 class Move {
 	Move(int _x, int _y, char _type){x = _x; y = _y; type = _type;}
 	int x, y;
 	char type;
 }
 
+/**
+ * Логика работы с доской: проверка ходов на корректность, 
+ * добаление, 
+ * удаление окруженных камней 
+ * @author ataryq
+ */
 public class DescProcessing {
-	
-	
 	char [][] desc;
 	int size;
 	// desc two moves old
@@ -26,6 +35,10 @@ public class DescProcessing {
 	public static final char WHITE = '1';
 	public static final char EMPTY = '2';
 	
+	/**
+	 * Коструктор
+	 * @param size_desc  разер доски
+	 */
 	public DescProcessing(int size_desc) {
 		size = size_desc;
 		desc = new char[size][size];
@@ -46,6 +59,11 @@ public class DescProcessing {
 		}	
 	}
 	
+	/**
+	 * Вернет тип
+	 * @param type true - black
+	 * @return
+	 */
 	protected char GetTypeByBool(boolean type) {
 		if(type) return BLACK;
 		else return WHITE;
@@ -57,6 +75,9 @@ public class DescProcessing {
 		else return EMPTY;
 	}
 	
+	/**
+	 * Сохранить состояние доски в буфер
+	 */
 	public void SaveState() {
 		for(int i = 0; i < size; i++) {
 			for(int k = 0; k < size; k++) {
@@ -65,6 +86,9 @@ public class DescProcessing {
 		}
 	}
 	
+	/**
+	 * Восстановить состояние доски из буфера
+	 */
 	public void LoadState() {
 		for(int i = 0; i < size; i++) {
 			for(int k = 0; k < size; k++) {
@@ -73,6 +97,14 @@ public class DescProcessing {
 		}
 	}
 	
+	/**
+	 * Проверка хода на корректность: на то что позиция не повторяет предыдущую позицию,
+	 * что ход возможен
+	 * @param X  поз. по х
+	 * @param Y поз. по у
+	 * @param type цвет камня
+	 * @return true - ход одобрен, false - иначе
+	 */
 	public boolean CheckMove(int X, int Y, char type) {
 		boolean ret = false;
 		
@@ -109,11 +141,22 @@ public class DescProcessing {
 		return ret;
 	}
 	
+	/**
+	 * Рекурсивная проверка, если позиция в которую хотят поставить камень окружена, запретить
+	 * @param X поз. х
+	 * @param Y поз. у
+	 * @param type цвет камня
+	 * @return true - ход одобрен, false - иначе
+	 */
 	protected boolean CheckSuicideMove(int X, int Y, char type) {
 		if(RecProcSurrStone(X, Y, type)) return true;
 		return false;
 	}
 	
+	/**
+	 * Сохранить состояние доски в буфер последнего хода
+	 * @param type цвет камня
+	 */
 	protected void SaveStateDesc(char type) {
 		if(type == BLACK) 
 		{
@@ -138,6 +181,11 @@ public class DescProcessing {
 		desc[x][y] = type;
 	}
 	
+	/**
+	 * удалит окруженные камни противника
+	 * @param type цвет камня
+	 * @return список удаленных камней
+	 */
 	public ArrayList<Move> ProcSurroundStone(char type) {
 		if(!simulate) SaveStateDesc(GetAnotherType(type));
 		
@@ -174,6 +222,13 @@ public class DescProcessing {
 	
 	// function find killed groups
 	// ret false if group must delete
+	/**
+	 * Рекрсивный алгоритм поиска мертвых групп
+	 * @param x поз. х
+	 * @param y поз. у
+	 * @param type цвет камня
+	 * @return true - группа включающая камень в позиции х, у жива, false - иначе
+	 */
 	protected boolean RecProcSurrStone(int x, int y, char type) {
 		if( !(x >= 0 && x < this.size &&
 				y >= 0 && y < size) ) return false;
@@ -195,6 +250,10 @@ public class DescProcessing {
 		return false;
 	}
 	
+	/**
+	 * Для тестирования
+	 * Тестовая функция для проверки работы алгоритма поиска мертвых групп
+	 */
 	public void Test() {		
 		desc[2][3] = BLACK;
 		desc[2][4] = BLACK;
@@ -229,6 +288,10 @@ public class DescProcessing {
 		PrintDesc();
 	}
 	
+	/**
+	 * Для тестирования
+	 * Вывод доски в консоль разработчика
+	 */
 	public void PrintDesc() {
 		System.out.print("\n______________________________________\n");
 		for(int i = 0; i < size; i++) {
