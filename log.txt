@@ -1,0 +1,12 @@
+start main 
+
+create socket server 
+
+start graphic part 
+
+start socket server 
+
+-> Security server started... 
+
+-> Security server started normal 
+
