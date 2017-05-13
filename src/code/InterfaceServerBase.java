@@ -1,3 +1,4 @@
+package code;
 /**
  * Интерфейс сокет сервера
  * @author ataryq

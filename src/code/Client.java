@@ -1,3 +1,4 @@
+package code;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -395,7 +396,7 @@ public class Client  implements InterfaceClient, InterfaceAction {
 	 * Отправляет информацию об изменении камней на доске(удаление пленников и прочее)
 	 * @param moves  список измененных камней
 	 */
-	public void SendDiffMove(ArrayList<Move> moves) {
+	public void SendDiffMove(ArrayList<DescProcessing.Move> moves) {
 		// TODO Auto-generated method stub
 		String msg = "3" + SPLIT_COM + "6" + SPLIT_COM;
 		for(int i = 0; i < moves.size(); i++) {

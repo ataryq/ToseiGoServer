@@ -1,3 +1,4 @@
+package code;
 import java.util.ArrayList;
 
 /**
@@ -75,7 +76,7 @@ public interface InterfaceClient{
 	 * Послать разницу в камнях на доске
 	 * @param moves
 	 */
-	public void SendDiffMove(ArrayList<Move> moves);
+	public void SendDiffMove(ArrayList<DescProcessing.Move> moves);
 	/**
 	 * Послать очки
 	 * @param point очки игрока
