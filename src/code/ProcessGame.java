@@ -22,6 +22,7 @@ public class ProcessGame {
 	protected int size_desc;
 	protected int white_point = 0;
 	protected int black_point = 0;
+	protected boolean success_last_move = false;
 	
 	/**
 	 *  онструктор
@@ -38,6 +39,12 @@ public class ProcessGame {
 		size_desc = 19;
 		desc_proc = new DescProcessing(size_desc);
 	}
+	
+	public ProcessGame() {
+		size_desc = 19;
+		desc_proc = new DescProcessing(size_desc);
+	}
+
 	
 	/**
 	 * ¬озвратит хоста игры(тот кто приглашает)
@@ -64,6 +71,10 @@ public class ProcessGame {
 		else return false;
 	}
 	
+	public boolean GetSuccedLastMove() {
+		return success_last_move;
+	}
+	
 	/**
 	 * ѕопытка добавить камень на доску
 	 * @param X коор. хода
@@ -71,6 +82,7 @@ public class ProcessGame {
 	 * @param player сходивший игрок
 	 */
 	public void Move(int X, int Y, InterfaceClient player) {
+		success_last_move = false;
 		try {
 			boolean type;
 			if(player == black) type = BLACK;
@@ -120,6 +132,7 @@ public class ProcessGame {
 					
 					was_pass = false;
 					queue_move = !queue_move;
+					success_last_move = true;
 				} else {
 					player.SendAnswerMove(false);
 				}

@@ -29,13 +29,26 @@ public class DescProcessing {
 	 * Stcuture of move.
 	 *
 	 */
-	public class Move {
-		Move(int _x, int _y, char _type){x = _x; y = _y; type = _type;}
-		Move(){type = NOT_FILL;}
+	public static class Move {
+		public Move(int _x, int _y, char _type){x = _x; y = _y; type = _type;}
+		public Move(){type = NOT_FILL;}
 		public int x, y;
 		public char type;
+		
+		public String toString() {
+			Integer _x = new Integer(x);
+			Integer _y = new Integer(y);
+
+			return _x.toString() + "," + _y.toString() + "," + type;
+		}
+		
+		public boolean Compare(Move mv) {
+			if(x == mv.x && y == mv.y) {
+				return true;
+			}
+			return false;
+		}
 	}
-	
 	
 	/**
 	 * Constructor
@@ -105,32 +118,32 @@ public class DescProcessing {
 	}
 	
 	/**
-	 * Check move to correct.
+	 * 
 	 * @param X
 	 * @param Y
-	 * @param type - type stone
-	 * @return true - accept move, false - else
+	 * @param type - type of stone
+	 * @return - true - if not cycle, false - else
 	 */
-	public boolean CheckMove(int X, int Y, char type) {
+	public boolean CheckCycleMove(int X, int Y, char type) {
 		boolean ret = false;
-		
-		if(desc[X][Y] != EMPTY) return false;
-		
-		ServerProcessing.Log("check move start t: " + type + "\n");
-		
 		simulate = true;
 		SaveState();
 		
 		this.PutStone(X, Y, type);
-		this.ProcSurroundStone(GetAnotherType(type));
-				
+		//this.ProcSurroundStone(GetAnotherType(type));
+		PrintDesc();
+		
 		if(type == BLACK) {
+			PrintDesc(last_desc_black, size);
+			
 			for(int i = 0; i < size; i++) {
 				for(int k = 0; k < size; k++) {
 					if(last_desc_black[i][k] != desc[i][k] ) ret = true;
 				}
 			}
 		} else {
+			PrintDesc(last_desc_white, size);
+
 			for(int i = 0; i < size; i++) {
 				for(int k = 0; k < size; k++) {
 					if(last_desc_white[i][k] != desc[i][k] ) ret = true;
@@ -138,9 +151,31 @@ public class DescProcessing {
 			}
 		}
 		
-		ret &= CheckSuicideMove(X, Y, type);
 		LoadState();
 		simulate = false;
+
+		return ret;
+	}
+	
+	/**
+	 * Check move to correct.
+	 * @param X
+	 * @param Y
+	 * @param type - type stone
+	 * @return true - accept move, false - else
+	 */
+	public boolean CheckMove(int X, int Y, char type)  {
+		boolean ret = false;
+		
+		if(desc[X][Y] != EMPTY) return false;
+		
+		ServerProcessing.Log("check move start t: " + type + "\n");
+		
+		ret = CheckCycleMove(X, Y, type);
+		
+		try {
+			ret &= CheckSuicideMove(X, Y, type);
+		} catch (ExeptionOutOfDescSize e) {}
 		
 		System.out.println("check move end ret: " + ret);
 		
@@ -149,13 +184,17 @@ public class DescProcessing {
 	
 	/**
 	 * Check move to suicide.
-	 * @param X
-	 * @param Y
+	 * @param x
+	 * @param y
 	 * @param type - type stone 
 	 * @return true - move is suicide, false - else
+	 * @throws ExeptionOutOfDescSize 
 	 */
-	public boolean CheckSuicideMove(int X, int Y, char type) {
-		if(RecProcSurrStone(X, Y, type)) return true;
+	public boolean CheckSuicideMove(int x, int y, char type) throws ExeptionOutOfDescSize {
+		if(x >= size - 1 || x < 0 || y >= size - 1 || y < 0) {
+			throw new ExeptionOutOfDescSize();
+		}
+		if(RecProcSurrStone(x, y, type, 0)) return true;
 		return false;
 	}
 	
@@ -189,9 +228,31 @@ public class DescProcessing {
 	 * @param y
 	 * @param type - type of stone
 	 */
-	public void PutStone(int x, int y, char type) {
+	public void PutStone(int x, int y, char type)  {
+		if(x > size - 1 || x < 0 || y > size - 1 || y < 0) {
+			return;
+		}
+
 		desc[x][y] = type;
 	}
+	
+	public static class ExeptionOutOfDescSize extends Throwable {
+		private static final long serialVersionUID = 1L;
+		
+	}
+	
+	/**
+	 * Put stone into desc.
+	 * @param mv - stone
+	 * @throws ExeptionOutOfDescSize if x or y more than size of desc
+	 */
+	public void PutStone(Move mv) throws ExeptionOutOfDescSize {
+		if(mv.x > size - 1 || mv.x < 0 || mv.y > size - 1 || mv.y < 0) {
+			throw new ExeptionOutOfDescSize();
+		}
+		desc[mv.x][mv.y] = mv.type;
+	}
+
 	
 	/**
 	 * 
@@ -212,7 +273,7 @@ public class DescProcessing {
 			for(int k = 0; k < size; k++) {
 				if(!rec_desc[i][k]) 
 				{
-					if(!RecProcSurrStone(i, k, type) ) {
+					if(!RecProcSurrStone(i, k, type, 0) ) {
 						for(int m = 0; m < proc_stone.size(); m++) {
 							Move mv = proc_stone.get(m);
 							desc[mv.x][mv.y] = EMPTY;
@@ -239,9 +300,8 @@ public class DescProcessing {
 	 * @param type - type of move
 	 * @return true - group of stone is alive, false - else
 	 */
-	protected boolean RecProcSurrStone(int x, int y, char type) {
-		if( !(x >= 0 && x < this.size &&
-				y >= 0 && y < size) ) return false;
+	public boolean RecProcSurrStone(int x, int y, char type, int depth) {
+		if( !(x >= 0 && x < this.size && y >= 0 && y < size) ) return false;
 		if(desc[x][y] == EMPTY) return true;
 		if(rec_desc[x][y]) return false;
 		if(desc[x][y] == type) {
@@ -250,31 +310,16 @@ public class DescProcessing {
 			
 			boolean ret = false;
 			
-			if(x >= 0) 		ret |= RecProcSurrStone(x - 1, y, type);
-			if(x < size) 	ret |= RecProcSurrStone(x + 1, y, type);
-			if(y >= 0) 		ret |= RecProcSurrStone(x, y - 1, type);
-			if(y < size) 	ret |= RecProcSurrStone(x, y + 1, type);
+			if(x >= 0) 		ret |= RecProcSurrStone(x - 1, y, type, depth + 1);
+			if(x < size) 	ret |= RecProcSurrStone(x + 1, y, type, depth + 1);
+			if(y >= 0) 		ret |= RecProcSurrStone(x, y - 1, type, depth + 1);
+			if(y < size) 	ret |= RecProcSurrStone(x, y + 1, type, depth + 1);
 			return ret;
 		}
 		
 		return false;
 	}
 			
-	/**
-	 * 
-	 * @param x_start x coordinate of start move
-	 * @param y_start y coordinate of start move
-	 * @param counter size group
-	 * @return true - closed group, false - else
-	 */
-	protected boolean CheckClosedGroup(int x_start, int y_start, Integer counter) {
-		RecCheckClosedGroup(new Move(x_start, y_start, 
-				desc[x_start][y_start]), new Move(), counter);
-		if(counter < (size * size / 2) ) {
-			return true;
-		}
-		return false;
-	}
 	
 	/**
 	 * 
@@ -282,9 +327,15 @@ public class DescProcessing {
 	 * @param neighbors array with neighbors
 	 * @return count of neighbors
 	 */
-	protected int FindCountNeighbor(Move new_m, ArrayList<Move> neighbors) {
+	protected int FindCountNeighbor(final Move new_m, ArrayList<Move> neighbors) {
 		int ret = 0;
+		boolean up_b = false;
+		boolean down_b = false;
+		boolean left_b = false;
+		boolean right_b = false;
+
 		if(new_m.x + 1 < size) {
+			right_b = true;
 			if(desc[new_m.x + 1][new_m.y] == new_m.type) {
 				ret += 1;
 				Move new_neighbor = new Move(new_m.x + 1, new_m.y, new_m.type);
@@ -293,52 +344,163 @@ public class DescProcessing {
 		}
 		
 		if(new_m.x > 0) {
+			left_b = true;
 			if(desc[new_m.x - 1][new_m.y] == new_m.type) {
 				ret += 1;
-				Move new_neighbor = new Move(new_m.x + 1, new_m.y, new_m.type);
+				Move new_neighbor = new Move(new_m.x - 1, new_m.y, new_m.type);
 				neighbors.add(new_neighbor);
 			}
 		}
 		
 		if(new_m.y + 1 < size) {
+			down_b = true;
 			if(desc[new_m.x][new_m.y + 1] == new_m.type) {
 				ret += 1;
-				Move new_neighbor = new Move(new_m.x + 1, new_m.y, new_m.type);
+				Move new_neighbor = new Move(new_m.x, new_m.y + 1, new_m.type);
 				neighbors.add(new_neighbor);
 			}
 		}
 		
 		if(new_m.y > 0) {
+			up_b = true;
 			if(desc[new_m.x][new_m.y - 1] == new_m.type) {
 				ret += 1;
-				Move new_neighbor = new Move(new_m.x + 1, new_m.y, new_m.type);
+				Move new_neighbor = new Move(new_m.x, new_m.y - 1, new_m.type);
 				neighbors.add(new_neighbor);
 			}
 		}
 		
+		if(left_b && up_b ) {
+			if(desc[new_m.x - 1][new_m.y - 1] == new_m.type) {
+				ret += 1;
+				Move new_neighbor = new Move(new_m.x - 1, new_m.y - 1, new_m.type);
+				neighbors.add(new_neighbor);
+			}
+		}
+		
+		if(right_b && down_b) {
+			if(desc[new_m.x + 1][new_m.y + 1] == new_m.type) {
+				ret += 1;
+				Move new_neighbor = new Move(new_m.x + 1, new_m.y + 1, new_m.type);
+				neighbors.add(new_neighbor);
+			}
+		}
+		
+		if(right_b && up_b ) {
+			if(desc[new_m.x + 1][new_m.y - 1] == new_m.type) {
+				ret += 1;
+				Move new_neighbor = new Move(new_m.x + 1, new_m.y - 1, new_m.type);
+				neighbors.add(new_neighbor);
+			}
+		}
+		
+		if(left_b && down_b) {
+			if(desc[new_m.x - 1][new_m.y + 1] == new_m.type) {
+				ret += 1;
+				Move new_neighbor = new Move(new_m.x - 1, new_m.y + 1, new_m.type);
+				neighbors.add(new_neighbor);
+			}
+		}
+	
 		return ret;
 	}
 	
+	private TYPE_RET CheckBorder(Move mv) {
+		if(mv.x >= size - 1) {
+			return TYPE_RET.R_BORDER;
+		}
+		if(mv.x == 0) {
+			return TYPE_RET.L_BORDER;
+		}
+		if(mv.y >= size - 1) {
+			return TYPE_RET.B_BORDER;
+		}
+		if(mv.y == 0) {
+			return TYPE_RET.T_BORDER;
+		}
+		return TYPE_RET.FAIL;
+	}
+	
+	/**
+	 * 
+	 * @param x_start x coordinate of start move
+	 * @param y_start y coordinate of start move
+	 * @param counter size group
+	 * @return true - closed group, false - else
+	 */
+	public boolean CheckClosedGroup(int x_start, int y_start, Integer counter) {
+		Move new_mv = new Move(x_start, y_start, desc[x_start][y_start]);
+		visited = new boolean[size][size];
+		TYPE_RET ret = RecCheckClosedGroup(new_mv, new_mv, new_mv, counter, 0);
+		if(ret == TYPE_RET.ENDED) {
+			return true;
+		}
+		return false;
+	}
+		
+	protected boolean CheckBorderClosed(TYPE_RET t1, TYPE_RET t2) {
+		if(t1 == TYPE_RET.L_BORDER && t2 == TYPE_RET.R_BORDER) return false;
+		if(t1 == TYPE_RET.T_BORDER && t2 == TYPE_RET.B_BORDER) return false;
+		return true;
+	}
+	
+	enum TYPE_RET{ENDED, FAIL, L_BORDER, R_BORDER, T_BORDER, B_BORDER};
+	private boolean[][] visited;
 	/**
 	 * Recursive part of algorithm finding closed group
 	 * @param new_m new move
 	 * @param old_m old move
 	 * @param counter count of moves
 	 */
-	protected void RecCheckClosedGroup(Move new_m, Move old_m, int counter) {
+	protected TYPE_RET RecCheckClosedGroup(Move start_m, Move new_m, Move old_m, int counter, int length) {
+		if(start_m.Compare(new_m) && !start_m.Compare(old_m)) {
+			if(length < 6) {
+				TYPE_RET res = CheckBorder(new_m);
+				return res;
+			}
+			
+			return TYPE_RET.ENDED;
+		}
+
+		if(visited[new_m.x][new_m.y]) {
+			return TYPE_RET.FAIL;
+		}
+
+		visited[new_m.x][new_m.y] = true;
 		ArrayList<Move> neighbors = new ArrayList<Move>();
 		counter++;
-		if( FindCountNeighbor(new_m, neighbors) == 0 ) {
-			return;
-		}
 		if( FindCountNeighbor(new_m, neighbors) == 1 ) {
 			if(old_m.type != NOT_FILL) {
-				return;
+				TYPE_RET res = CheckBorder(new_m);
+				if(res != TYPE_RET.FAIL) return res;
+				else 
+					return TYPE_RET.FAIL;
 			}
 		}
+		
+		ArrayList<TYPE_RET> rets = new ArrayList<TYPE_RET>();
+		rets.add(CheckBorder(new_m));
+		
 		for(int i = 0; i < neighbors.size(); i++) {
-			RecCheckClosedGroup(neighbors.get(i), new_m, counter);
+			if(neighbors.get(i).x == old_m.x && neighbors.get(i).y == old_m.y) continue;
+			TYPE_RET tmp_ret = RecCheckClosedGroup(start_m, neighbors.get(i), new_m, counter, length + 1);
+			if(tmp_ret == TYPE_RET.ENDED) {
+				return TYPE_RET.ENDED;
+			}
+
+			if(tmp_ret != TYPE_RET.FAIL) {
+				for(int k = 0; k < rets.size(); k++) {
+					if( CheckBorderClosed(tmp_ret, rets.get(k)) ) {
+						return TYPE_RET.ENDED;
+					}
+				}
+				rets.add(tmp_ret);
+			}
+			
 		}
+		
+		TYPE_RET ret = CheckBorder(new_m);
+		return ret;
 	}
 
 	/**
@@ -368,7 +530,7 @@ public class DescProcessing {
 	 * @param y_start y coordinate of start move
 	 * @return number of free space inside of closed group
 	 */
-	protected int CalcFreeSapceInClosedGroupe(int x_start, int y_start) {
+	public int CalcFreeSapceInClosedGroupe(int x_start, int y_start) {
 		ArrayList<Move> freeSpace = new ArrayList<Move>();
 		Move m = new Move(x_start, y_start, desc[x_start][y_start]);
 		return FindCountFreeSpace(m, freeSpace);
@@ -380,7 +542,7 @@ public class DescProcessing {
 	 * @param freeSpace array with neighbors
 	 * @return count of neighbors
 	 */
-	protected int FindCountFreeSpace(Move new_m, ArrayList<Move> freeSpace) {
+	public int FindCountFreeSpace(Move new_m, ArrayList<Move> freeSpace) {
 		int ret = 0;
 		if(new_m.x + 1 < size) {
 			if(desc[new_m.x + 1][new_m.y] != new_m.type) {
@@ -425,9 +587,13 @@ public class DescProcessing {
 	 * 
 	 * @param x coordinate of start move
 	 * @param y coordinate of start move
-	 * @return
+	 * @return type of stone
 	 */
-	public char GetTypeStone(int x, int y) { 
+	public char GetTypeStone(int x, int y)  {
+		if(x > size - 1 || x < 0 || y > size - 1 || y < 0) {
+			return EMPTY;
+		}
+
 		return desc[x][y];
 	}
 	
@@ -436,15 +602,21 @@ public class DescProcessing {
 	 * out to consol
 	 */
 	public void PrintDesc() {
+		PrintDesc(desc, size);
+
+	}
+	
+	public static void PrintDesc(char [][] _desc, int _size) {
 		System.out.print("\n______________________________________\n");
-		for(int i = 0; i < size; i++) {
-			for(int k = 0; k < size; k++) {
-				System.out.print(desc[i][k] + "|"); 
+		for(int i = 0; i < _size; i++) {
+			for(int k = 0; k < _size; k++) {
+				System.out.print(_desc[i][k] + "|"); 
 			}
 			System.out.print("\n");
 		}
 		System.out.print("______________________________________\n");
 
 	}
+
 	
 }

@@ -1,4 +1,4 @@
-package JUnitTest;
+package HardTests;
 
 import static org.junit.Assert.*;
 
@@ -6,7 +6,11 @@ import org.junit.Test;
 
 import code.DescProcessing;
 
-public class JTestCheckSuicide {
+/**
+ * Test group must be killed
+ */
+
+public class JTestDeleteSurroundStone {
 
 	@Test
 	public void test() {
@@ -27,12 +31,21 @@ public class JTestCheckSuicide {
 		descProcess.PutStone(3, 3, DescProcessing.WHITE);
 		descProcess.PutStone(3, 4, DescProcessing.WHITE);
 		descProcess.PutStone(3, 5, DescProcessing.WHITE);
-		boolean ret = descProcess.CheckSuicideMove(4, 5, DescProcessing.WHITE);
+		descProcess.PutStone(4, 5, DescProcessing.WHITE);
+
+		descProcess.PrintDesc();
+
+		descProcess.ProcSurroundStone(DescProcessing.WHITE);
+
+		descProcess.PrintDesc();
 		
-		if(!ret) {
-			descProcess.PrintDesc();
-			fail("Test to check suicide moveing is invalid");
+		if(descProcess.GetTypeStone(3, 3) != DescProcessing.EMPTY ||
+				descProcess.GetTypeStone(3, 4) != DescProcessing.EMPTY ||
+				descProcess.GetTypeStone(3, 5) != DescProcessing.EMPTY ||
+				descProcess.GetTypeStone(4, 5) != DescProcessing.EMPTY) {
+			fail("Invalid processing surround");
 		}
+
 		
 	}
 

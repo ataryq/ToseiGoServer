@@ -1,0 +1,12 @@
+package AutomaticTests;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+
+@RunWith(Suite.class)
+@SuiteClasses({ JTestAutoCheckClosed.class, JTestAutoCheckSuicide.class, JTestAutoDeleteSurroundStone.class,
+		JUnitAutoCheckNotClosed.class })
+public class AllTests {
+
+}

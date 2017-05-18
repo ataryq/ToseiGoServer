@@ -1,18 +1,12 @@
-package JUnitTest;
+package HardTests;
 
 import static org.junit.Assert.*;
-
-import java.util.ArrayList;
 
 import org.junit.Test;
 
 import code.DescProcessing;
 
-/**
- * Test group must be killed
- */
-
-public class JTestDeleteSurroundStone {
+public class JTestCheckClosed {
 
 	@Test
 	public void test() {
@@ -35,18 +29,10 @@ public class JTestDeleteSurroundStone {
 		descProcess.PutStone(3, 5, DescProcessing.WHITE);
 		descProcess.PutStone(4, 5, DescProcessing.WHITE);
 
-		descProcess.PrintDesc();
-
-		descProcess.ProcSurroundStone(DescProcessing.WHITE);
-
-		descProcess.PrintDesc();
-		
-		
-		if(descProcess.GetTypeStone(3, 3) != DescProcessing.EMPTY ||
-				descProcess.GetTypeStone(3, 4) != DescProcessing.EMPTY ||
-				descProcess.GetTypeStone(3, 5) != DescProcessing.EMPTY ||
-				descProcess.GetTypeStone(4, 5) != DescProcessing.EMPTY) {
-			fail("Invalid processing surround");
+		Integer counter = new Integer(0);
+		boolean ret = descProcess.CheckClosedGroup(5, 5, counter);
+		if(!ret) {
+			fail("Invalid check to closed group");
 		}
 
 		
